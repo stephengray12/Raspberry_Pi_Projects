@@ -1,62 +1,61 @@
 import RPi.GPIO as GPIO
 import time
 
-# === GPIO Setup ===
 GPIO.setmode(GPIO.BCM)
 
-# LED Pins
 RED_LED = 22
 GREEN_LED = 27
-BLUE_LED = 17  # You can keep or remove this if unused
+BLUE_LED = 17
 
-# Switch Pin (only one now)
 SWITCH_ON = 23
-
-# Servo Pin
 SERVO_PIN = 18
 
-# === Pin Configuration ===
 GPIO.setup([RED_LED, GREEN_LED, BLUE_LED], GPIO.OUT)
 GPIO.setup(SWITCH_ON, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(SERVO_PIN, GPIO.OUT)
 
-# PWM Setup for Servo (50Hz)
-servo = GPIO.PWM(SERVO_PIN, 50)
-servo.start(0)  # Start with 0% duty cycle
+try:
+    servo = GPIO.PWM(SERVO_PIN, 50)
+    servo.start(0)
+except Exception as e:
+    print(f"Error initializing servo PWM: {e}")
+    GPIO.cleanup()
+    exit(1)
 
-# === Helper Function ===
 def set_servo_position(duty):
     servo.ChangeDutyCycle(duty)
-    time.sleep(0.5)  # Give servo time to move
-    servo.ChangeDutyCycle(0)  # Prevent jitter
+    time.sleep(0.5)
+    servo.ChangeDutyCycle(0)
 
-# === Main Program ===
 try:
     while True:
         on_state = GPIO.input(SWITCH_ON)
+        print(f"Current Motor State: {on_state}")  # Debug print
 
         if on_state:
-            # Switch ON → Green LED on, Red LED off
             GPIO.output(RED_LED, GPIO.LOW)
             GPIO.output(GREEN_LED, GPIO.HIGH)
-            GPIO.output(BLUE_LED, GPIO.LOW)  # Optional, can remove if unused
-
-            set_servo_position(7.5)  # Move servo to ON position
-
+            GPIO.output(BLUE_LED, GPIO.LOW)
+            set_servo_position(7.5)
         else:
-            # Switch OFF → Red LED on, Green LED off
             GPIO.output(RED_LED, GPIO.HIGH)
             GPIO.output(GREEN_LED, GPIO.LOW)
-            GPIO.output(BLUE_LED, GPIO.LOW)  # Optional
-
-            set_servo_position(2.5)  # Move servo to OFF position
-
-        time.sleep(0.1)
+            GPIO.output(BLUE_LED, GPIO.LOW)
+            set_servo_position(0)
 
 except KeyboardInterrupt:
-    print("Exiting...")
+    print("Exiting program...")
 
 finally:
-    print("Cleaning up GPIO and stopping servo...")
-    servo.stop()
+    print("Cleaning up GPIO and turning everything OFF...")
+    # Turn off all LEDs before cleanup
+    GPIO.output(RED_LED, GPIO.LOW)
+    GPIO.output(GREEN_LED, GPIO.LOW)
+    GPIO.output(BLUE_LED, GPIO.LOW)
+
+    try:
+        servo.stop()
+    except Exception as e:
+        print(f"Error stopping servo: {e}")
+
     GPIO.cleanup()
