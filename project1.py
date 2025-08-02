@@ -1,68 +1,62 @@
 import RPi.GPIO as GPIO
 import time
 
-# GPIO setup
+# === GPIO Setup ===
 GPIO.setmode(GPIO.BCM)
 
-# LEDs
+# LED Pins
 RED_LED = 22
 GREEN_LED = 27
-BLUE_LED = 17
+BLUE_LED = 17  # You can keep or remove this if unused
 
-# Switch inputs
+# Switch Pin (only one now)
 SWITCH_ON = 23
-SWITCH_OFF = 24
 
-# Servo
+# Servo Pin
 SERVO_PIN = 18
 
-# Setup pins
+# === Pin Configuration ===
 GPIO.setup([RED_LED, GREEN_LED, BLUE_LED], GPIO.OUT)
-GPIO.setup([SWITCH_ON, SWITCH_OFF], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(SWITCH_ON, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(SERVO_PIN, GPIO.OUT)
 
-# Setup PWM for servo
-servo = GPIO.PWM(SERVO_PIN, 50)  # 50 Hz
-servo.start(0)
+# PWM Setup for Servo (50Hz)
+servo = GPIO.PWM(SERVO_PIN, 50)
+servo.start(0)  # Start with 0% duty cycle
 
+# === Helper Function ===
 def set_servo_position(duty):
     servo.ChangeDutyCycle(duty)
-    time.sleep(0.3)
-    servo.ChangeDutyCycle(0)  # Prevent servo jitter
+    time.sleep(0.5)  # Give servo time to move
+    servo.ChangeDutyCycle(0)  # Prevent jitter
 
+# === Main Program ===
 try:
     while True:
         on_state = GPIO.input(SWITCH_ON)
-        off_state = GPIO.input(SWITCH_OFF)
 
-        if on_state and not off_state:
-            # Servo ON state
+        if on_state:
+            # Switch ON → Green LED on, Red LED off
             GPIO.output(RED_LED, GPIO.LOW)
             GPIO.output(GREEN_LED, GPIO.HIGH)
-            GPIO.output(BLUE_LED, GPIO.LOW)
-            set_servo_position(7.5)  # Midpoint (adjust if needed)
+            GPIO.output(BLUE_LED, GPIO.LOW)  # Optional, can remove if unused
 
-        elif off_state and not on_state:
-            # Servo OFF state
-            GPIO.output(RED_LED, GPIO.HIGH)
-            GPIO.output(GREEN_LED, GPIO.LOW)
-            GPIO.output(BLUE_LED, GPIO.LOW)
-            set_servo_position(2.5)  # Move to OFF position (adjust as needed)
-
-        elif on_state and off_state:
-            # ERROR: both directions triggered
-            GPIO.output(RED_LED, GPIO.LOW)
-            GPIO.output(GREEN_LED, GPIO.LOW)
-            GPIO.output(BLUE_LED, GPIO.HIGH)
-            set_servo_position(0)  # Stop servo
+            set_servo_position(7.5)  # Move servo to ON position
 
         else:
-            # No switch pressed — maintain current state
-            pass
+            # Switch OFF → Red LED on, Green LED off
+            GPIO.output(RED_LED, GPIO.HIGH)
+            GPIO.output(GREEN_LED, GPIO.LOW)
+            GPIO.output(BLUE_LED, GPIO.LOW)  # Optional
+
+            set_servo_position(2.5)  # Move servo to OFF position
 
         time.sleep(0.1)
 
 except KeyboardInterrupt:
     print("Exiting...")
+
+finally:
+    print("Cleaning up GPIO and stopping servo...")
     servo.stop()
     GPIO.cleanup()
