@@ -1,26 +1,28 @@
-from gpiozero import LED, Button, Servo
+from gpiozero import LED, Button
 from signal import pause
-from time import sleep
 
-red = LED(22)
 green = LED(27)
+red = LED(22)
 blue = LED(17)
 switch = Button(23)
-servo = Servo(18)
 
-def set_servo_position(pos):
-    servo.value = pos  # -1 to 1
-    sleep(0.5)
-
-while True:
+def switch_toggled():
     if switch.is_pressed:
-        red.off()
         green.on()
-        blue.off()
-        set_servo_position(0)  # middle
     else:
-        red.on()
         green.off()
+        red.off()
         blue.off()
-        set_servo_position(-1)  # leftmost
-    sleep(0.5)
+
+# Attach handler to switch state changes
+switch.when_pressed = switch_toggled
+switch.when_released = switch_toggled
+
+try:
+    # Run indefinitely
+    pause()
+except KeyboardInterrupt:
+    print("\nExiting, turning off all LEDs.")
+    green.off()
+    red.off()
+    blue.off()
