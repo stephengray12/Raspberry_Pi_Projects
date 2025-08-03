@@ -1,64 +1,26 @@
-import RPi.GPIO as GPIO
-import time
+from gpiozero import LED, Button, Servo
+from signal import pause
+from time import sleep
 
-# GPIO Setup
-GPIO.setmode(GPIO.BCM)
+red = LED(22)
+green = LED(27)
+blue = LED(17)
+switch = Button(23)
+servo = Servo(18)
 
-RED_LED = 22
-GREEN_LED = 27
-BLUE_LED = 17
-SWITCH_ON = 23
-SERVO_PIN = 18
+def set_servo_position(pos):
+    servo.value = pos  # -1 to 1
+    sleep(0.5)
 
-GPIO.setup([RED_LED, GREEN_LED, BLUE_LED], GPIO.OUT)
-GPIO.setup(SWITCH_ON, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(SERVO_PIN, GPIO.OUT)
-
-try:
-    servo = GPIO.PWM(SERVO_PIN, 50)
-    servo.start(0)
-except Exception as e:
-    print(f"Error initializing servo PWM: {e}")
-    GPIO.cleanup()
-    exit(1)
-
-def set_servo_position(duty):
-    servo.ChangeDutyCycle(duty)
-    time.sleep(0.5)
-    servo.ChangeDutyCycle(0)
-
-try:
-    while True:
-        on_state = GPIO.input(SWITCH_ON)
-        print(f"Current Motor State: {on_state}")
-
-        if on_state:
-            GPIO.output(RED_LED, GPIO.LOW)
-            GPIO.output(GREEN_LED, GPIO.HIGH)
-            GPIO.output(BLUE_LED, GPIO.LOW)
-            set_servo_position(7.5)
-        else:
-            GPIO.output(RED_LED, GPIO.HIGH)
-            GPIO.output(GREEN_LED, GPIO.LOW)
-            GPIO.output(BLUE_LED, GPIO.LOW)
-            set_servo_position(0)
-
-        time.sleep(0.5)
-
-except KeyboardInterrupt:
-    print("Exiting program...")
-
-finally:
-    print("Cleaning up GPIO and turning everything OFF...")
-
-    GPIO.output(RED_LED, GPIO.LOW)
-    GPIO.output(GREEN_LED, GPIO.LOW)
-    GPIO.output(BLUE_LED, GPIO.LOW)
-
-    try:
-        servo.stop()
-    except Exception as e:
-        print(f"Error stopping servo: {e}")
-
-    GPIO.cleanup()
-    time.sleep(2)
+while True:
+    if switch.is_pressed:
+        red.off()
+        green.on()
+        blue.off()
+        set_servo_position(0)  # middle
+    else:
+        red.on()
+        green.off()
+        blue.off()
+        set_servo_position(-1)  # leftmost
+    sleep(0.5)
