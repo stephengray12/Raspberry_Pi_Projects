@@ -1,28 +1,42 @@
-from gpiozero import LED, Button
-from signal import pause
+from gpiozero import LED, Button, Servo
+from time import sleep
 
-green = LED(27)
 red = LED(22)
-blue = LED(17)
-switch = Button(23)
+green = LED(27)
+blue = LED(17)  # Optional
+switch = Button(23, pull_up=True)
+servo = Servo(18)
 
-def switch_toggled():
+def activate_servo_on():
+    servo.value = 1  # Full forward speed (adjust as needed for your servo)
+
+def deactivate_servo():
+    servo.value = None  # Turn off servo (no signal sent = motor off)
+
+def update_state():
     if switch.is_pressed:
-        green.on()
-    else:
-        green.off()
+        print("Switch ON: green LED ON, red LED OFF, servo spinning")
         red.off()
-        blue.off()
+        green.on()
+        activate_servo_on()
+    else:
+        print("Switch OFF: green LED OFF, red LED ON, servo off")
+        green.off()
+        deactivate_servo()
+        red.on()
 
-# Attach handler to switch state changes
-switch.when_pressed = switch_toggled
-switch.when_released = switch_toggled
+# Initial state
+red.on()
+green.off()
+deactivate_servo()
 
 try:
-    # Run indefinitely
-    pause()
+    while True:
+        update_state()
+        sleep(0.2)
 except KeyboardInterrupt:
-    print("\nExiting, turning off all LEDs.")
-    green.off()
+    print("\nExiting gracefully, turning off all outputs.")
     red.off()
+    green.off()
     blue.off()
+    deactivate_servo()
