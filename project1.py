@@ -3,15 +3,15 @@ from time import sleep
 
 red = LED(22)
 green = LED(27)
-blue = LED(17)  # Optional
+blue = LED(17) 
 switch = Button(23, pull_up=True)
 servo = Servo(18)
 
 def activate_servo_on():
-    servo.value = 1  # Full forward speed (adjust as needed for your servo)
+    servo.value = 1  
 
 def deactivate_servo():
-    servo.value = None  # Turn off servo (no signal sent = motor off)
+    servo.value = None  
 
 def update_state():
     if switch.is_pressed:
@@ -25,7 +25,7 @@ def update_state():
         deactivate_servo()
         red.on()
 
-# Initial state
+
 red.on()
 green.off()
 deactivate_servo()
