@@ -1,5 +1,7 @@
 from gpiozero import LED, Button, Servo
 from time import sleep
+import time
+from LCD import LCD
 
 red = LED(22)
 green = LED(27)
@@ -40,3 +42,18 @@ except KeyboardInterrupt:
     green.off()
     blue.off()
     deactivate_servo()
+
+
+
+
+# Code to mess with i2c display library stored in directory in repo.
+# 
+# lcd = LCD(2, 0x27, True)  
+# 
+# lcd.message("Alysa is", 1)        
+# lcd.message("awesome!!!!!!", 2)    
+# 
+# time.sleep(5)
+# 
+# 
+# lcd.clear()
