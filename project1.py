@@ -1,19 +1,23 @@
 from gpiozero import LED, Button, Servo
 from time import sleep
-import time
-from LCD import LCD
+from LCD import LCD  # Assuming LCD is a custom class/module
 
+# Setup
 red = LED(22)
 green = LED(27)
-blue = LED(17) 
-switch = Button(23, pull_up=True)
 servo = Servo(18)
+
+lcd = LCD(2, 0x27, True)
+lcd.message("Alysa is", 1)        
+lcd.message("awesome!!!!!!", 2)    
+sleep(.5)
+lcd.clear()
 
 def activate_servo_on():
     servo.value = 1  
 
 def deactivate_servo():
-    servo.value = None  
+    servo.value = None  # or use 0 if needed
 
 def update_state():
     if switch.is_pressed:
@@ -27,11 +31,12 @@ def update_state():
         deactivate_servo()
         red.on()
 
-
+# Initial state
 red.on()
 green.off()
 deactivate_servo()
 
+# Main loop
 try:
     while True:
         update_state()
@@ -40,20 +45,4 @@ except KeyboardInterrupt:
     print("\nExiting gracefully, turning off all outputs.")
     red.off()
     green.off()
-    blue.off()
     deactivate_servo()
-
-
-
-
-# Code to mess with i2c display library stored in directory in repo.
-# 
-# lcd = LCD(2, 0x27, True)  
-# 
-# lcd.message("Alysa is", 1)        
-# lcd.message("awesome!!!!!!", 2)    
-# 
-# time.sleep(5)
-# 
-# 
-# lcd.clear()
